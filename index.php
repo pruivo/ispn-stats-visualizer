@@ -214,7 +214,7 @@
 
     function updatePlot(div, param, options, smoothValue) {
         $.ajax({
-            url:"get-multiple-data.php?param=" + param + "&folder=" + folder,
+            url:"get-data.php?param=" + param + "&folder=" + folder,
             method:'GET',
             dataType:'text',
             success:function (text) {
