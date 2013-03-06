@@ -92,10 +92,11 @@
       <td><div id="roExec" style="width:500px;height:300px"></div></td>
       <td><div id="wrExec" style="width:500px;height:300px"></div></td>
       <td><div id="expWrtPer" style="width:500px;height:300px"></div></td>
-   </tr>
-      
-      
+   </tr>            
 </table>
+
+  <table>
+  </table>
    
 <p>Time between updates:
    <input id="updateInterval" type="text" value="" style="text-align: right; width:5em">
@@ -143,7 +144,7 @@
       
       function updatePlot(div, param, avg, options) {
          $.ajax({
-         url: "get-multiple-data.php?param=" + param + "&avg=" + avg + "&folder=" + folder,
+         url: "get-data.php?param=" + param + "&avg=" + avg + "&folder=" + folder,
          method: 'GET',
          dataType: 'text',
          success: function(text) {                     
