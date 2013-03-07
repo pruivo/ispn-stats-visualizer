@@ -53,14 +53,14 @@
 <body>
 <h1>Workload Monitor - Real Time plots</h1>
 
-<table>
+<!--<table>
     <?php
-    $numberOfColumns = 4;
+    /*$numberOfColumns = 4;
     foreach ($phpFolderArray as &$f) {
         echo '<tr><td>Current protocol for <b>' . $f . '</b> is <span id="' . $f . '_protocol">N/A</span><td></tr>';
-    }
+    }*/
     ?>
-</table>
+</table>-->
 
 <table style="border:1px solid black;">
     <tr>
@@ -114,7 +114,7 @@
     <tr>
         <td>Average RO tx execution time (microseconds)</td>
         <td>Average Wr tx execution time (microseconds)</td>
-        <td>Expected Write Percentage</td>
+        <td>Current Protocol</td>
     </tr>
     <tr>
         <td>
@@ -124,12 +124,13 @@
             <div id="wrExec" style="width:500px;height:300px"></div>
         </td>
         <td>
-            <div id="expWrtPer" style="width:500px;height:300px"></div>
+            <div id="prot" style="width:500px;height:300px"></div>
         </td>
     </tr>
 </table>
 
-<p>Time between updates: <input id="updateInterval" type="text" value="" style="text-align: right; width:5em"> milliseconds</p>
+<p>Time between updates: <input id="updateInterval" type="text" value="" style="text-align: right; width:5em">
+    milliseconds</p>
 
 <script type="text/javascript">
     $(function () {
@@ -151,12 +152,14 @@
         // setup plot
         var default_options = {
             series:{ shadowSize:0 }, // drawing is faster without shadows
+            legend:{ position: "nw"},
             yaxis:{ min:0 },
             xaxis:{ min:0 }
         };
 
         var log_options = {
             series:{ shadowSize:0 }, // drawing is faster without shadows
+            legend:{ position: "nw"},
             yaxis:{ transform:function (v) {
                 if (v == 0) return 0;
                 return Math.log(v);
@@ -176,6 +179,21 @@
                 }},
             xaxis:{ min:0 }
         };
+
+        var protocol_options = {
+            series:{ shadowSize:0 }, // drawing is faster without shadows
+            legend:{ position: "nw"},
+            yaxis:{
+                ticks:[
+                    [0, "N/A"],
+                    [1, "PB"],
+                    [2, "2PC"],
+                    [3, "TO"]
+                ],
+                min:-0.1,
+                max:3.1},
+            xaxis:{ min:0 }
+        }
 
         function updatePlot(div, param, avg, options) {
             $.ajax({
@@ -199,6 +217,39 @@
                         if (keyValue[0] == "" || keyValue[1] == "") continue;
                         oldValue = smooth(oldValue, keyValue[1], smoothAlpha);
                         dataObj.data[j++] = new Array(keyValue[0], oldValue);
+                    }
+                    $.plot($("#" + div), allData, options);
+                }
+            });
+        }
+
+        function updateProtocolPlot(div, options) {
+            $.ajax({
+                url:"get-data.php?param=protocol&folder=" + folder,
+                method:'GET',
+                dataType:'text',
+                success:function (text) {
+                    var lines = text.split("\n");
+                    var allData = [];
+                    var dataIdx = 0;
+                    var oldValue = -1;
+                    var dataObj = { data:[], color:dataIdx, label:folderArray[dataIdx++]}
+                    for (var i = 0, j = 0; i < lines.length; i++) {
+                        if (lines[i] == ".") {
+                            allData.push(dataObj);
+                            dataObj = { data:[], color:dataIdx, label:folderArray[dataIdx++]};
+                            j = 0;
+                            continue;
+                        }
+                        var keyValue = lines[i].split("|");
+                        if (keyValue[0] == "" || keyValue[1] == "") continue;
+                        var numericValue = 0;
+                        switch (keyValue[1]) {
+                            case "PB": numericValue = 1; break;
+                            case "2PC": numericValue = 2; break;
+                            case "TO": numericValue = 3; break;
+                        }
+                        dataObj.data[j++] = new Array(keyValue[0], numericValue);
                     }
                     $.plot($("#" + div), allData, options);
                 }
@@ -229,7 +280,7 @@
         }
 
         function update() {
-            updateProtocol();
+            //updateProtocol();
             updatePlot("throughput", "throughput", "false", default_options);
             updatePlot("writeThroughput", "writeTxThroughput", "false", default_options);
             updatePlot("readThroughput", "readTxThroughput", "false", default_options);
@@ -241,7 +292,7 @@
             updatePlot("lockHold", "avgLockHoldTime", "true", default_options);
             updatePlot("roExec", "avgReadOnlyTxDuration", "true", default_options);
             updatePlot("wrExec", "avgWriteTxDuration", "true", default_options);
-            updatePlot("expWrtPer", "ExpectedWritePercentage", "true", default_options);
+            updateProtocolPlot("prot",  protocol_options);
             setTimeout(update, updateInterval);
         }
 
