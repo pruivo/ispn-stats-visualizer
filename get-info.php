@@ -27,6 +27,8 @@ function getRootFolder() {
 function getClusterInfo() {
     if (isset($_REQUEST['rootFolder'])) {
         $rootFolder = $_REQUEST['rootFolder'];
+    } else {
+        return array();
     }
 
     trace("root folder is " . $rootFolder);
@@ -38,6 +40,7 @@ function getClusterInfo() {
 
     $fdRootFolder = opendir($rootFolder);
     $resultsArray = array();
+    $insertIndex = 0;
     while (false != ($dirName = readdir($fdRootFolder))) {
         if ($dirName == "." || $dirName == "..") {
             continue;
@@ -45,17 +48,18 @@ function getClusterInfo() {
 
         trace("analyzing " . $rootFolder . "/" . $dirName);
         $fdDir = opendir($rootFolder . "/" . $dirName);
-        $insertIndex = 0;
         while (false != ($fileName = readdir($fdDir))) {
+            trace("checking file " . $fileName);
             if ($fileName == "." || $fileName == ".." || !endsWith($fileName, ".csv")) {
                 continue;
             }
-            trace("analyzing file " . $fileName);
+            trace("checking file " . $fileName . ". It is good!");
 
             $arrayToInsert = array();
             //the file name format is <instance>_<category>_numeric.csv
             $filenameSplit = preg_split("/_/", substr($fileName, 0, strlen($fileName) - 4));
             $arrayToInsert[0] = $filenameSplit[0];
+            //print_r($filenameSplit);
             if (count($filenameSplit) == 1) {
                 //cluster csv file
                 $arrayToInsert[1] = "none";
@@ -78,3 +82,5 @@ function getClusterInfo() {
     closedir($fdRootFolder);
     return $resultsArray;
 }
+
+//print_r(getClusterInfo());
