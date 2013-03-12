@@ -47,6 +47,7 @@
                 for (var i in clusterInfo) {
                     instanceArray.push(clusterInfo[i][0]);
                 }
+                populateColors(instanceArray);
                 populateOptions(instanceSelect, instanceArray);
                 populateCategory();
             }
@@ -78,13 +79,21 @@
                     }
                 }
                 populateOptions(attributeSelect, attributeArray);
+                suggestTitle();
+            }
+
+            function suggestTitle() {
+                var instance = $("#instanceComboBox").find(":selected").text();
+                var attribute = $("#attributeComboBox").find(":selected").text();
+                $("#title").val(instance + ": " + attribute);
             }
 
             function addPlot() {
                 var instance = $("#instanceComboBox").find(":selected").text();
                 var category = $("#categoryComboBox").find(":selected").text();
                 var attribute = $("#attributeComboBox").find(":selected").text();
-                var req = [[instance, category, attribute, 0]];
+                var title = $("#title").val();
+                /*var req = [[instance, category, attribute, 0]];
                 var url = "get-data-v2.php?folder=" + rootFolder + "&instances=" + JSON.stringify(req);
                 alert(rootFolder + "/" + instance + "/" + instance + "_" + category + "_numeric.csv\nAttribute:" + attribute + "\nurl:" + url);
 
@@ -95,7 +104,8 @@
                     success:function (text) {
                         alert(text);
                     }
-                });
+                });*/
+                addPlotToTable($("#plot_table"), instance, category, attribute, title);
             }
         </script>
         <table summary="">
@@ -110,59 +120,41 @@
             </tr>
             <tr>
                 <td>
-                    <select id="instanceComboBox" onchange="javascript:populateCategory()"></select>
+                    <select id="instanceComboBox" onchange="populateCategory()"></select>
                 </td>
                 <td>
-                    <select id="categoryComboBox" onchange="javascript:populateAttributes()"></select>
+                    <select id="categoryComboBox" onchange="populateAttributes()"></select>
                 </td>
                 <td>
-                    <select id="attributeComboBox"></select>
+                    <select id="attributeComboBox" onchange="suggestTitle()"></select>
                 </td>
                 <td>
                     <input type="text" size="50" id="title" value="New Plot"/>
                 </td>
                 <td>Not Available</td>
                 <td>Not Available</td>
-                <td><button onclick="javascript:addPlot()">Add</button></td>
+                <td>
+                    <button onclick="addPlot()">Add</button>
+                </td>
                 <!--
                 echo '<input type="checkbox" id="' . $ids . '_smooth" onchange="update();"/>';
                 echo '<input type="text" size="5" id="' . $ids . '_smooth_value" onchange="update();"/>';
                 -->
             </tr>
         </table>
-        <p>Time between updates: <input id="updateInterval" type="text" value="" style="text-align: right; width:5em">
+        <p>Time between updates: <input id="updateInterval" type="text" value="1000"
+                                        style="text-align: right; width:5em" onchange="setUpdateInterval($(this))">
             milliseconds</p>
         <script type="text/javascript">
             populateInstances();
         </script>
     </div>
 </div>
-<script type="text/javascript">
-    <?php
-    //echo 'var maxIds = ' . $ids . ';';
-    ?>
-</script>
-<p/>
+<br/>
 
 <table style="border:1px solid black;" id="plot_table">
+    <tbody></tbody>
 </table>
-<!--
-<script type="text/javascript">
-    function test() {
-        var req = ["test-instance", "NET", "incoming", 5, "outcoming", 2, "traffic", 9];
-        var url = "get-data-v2.php?folder=test&parameters=" + JSON.stringify(req);
 
-        $.ajax({
-            url:url,
-            method:'GET',
-            dataType:'json',
-            success:function (text) {
-                alert(text);
-            }
-        });
-    }
-</script>
-<button onclick="javascript:test();">Blah</button>
--->
 </body>
 </html>

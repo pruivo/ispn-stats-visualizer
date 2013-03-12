@@ -1,4 +1,7 @@
 var updateInterval = 10000;
+var uniquePlotManager = {};
+var plotColorManager = {};
+var plotAttributesManager = {};
 
 var default_options = {
     series:{ shadowSize:0 }, // drawing is faster without shadows
@@ -47,7 +50,6 @@ function setUpdateInterval(input) {
         input.val(updateInterval);
     }
 }
-
 
 
 function updatePlot(div, param, options, smoothValue) {
@@ -129,7 +131,7 @@ function updatePlotForId(id, parameter, log_scale, smooth, smooth_value) {
     updatePlot(id + "_plot", parameter, options, smooth_value);
 }
 
-function updatePlotTitleFor(div,value) {
+function updatePlotTitleFor(div, value) {
     div.html(value.val());
 }
 
@@ -140,32 +142,51 @@ function smooth(oldValue, newValue, alpha) {
     return alpha * newValue + (1 - alpha) * oldValue;
 }
 
-function build(tableDiv) {
-    var id = 1;
-    tableDiv.html("");
-    var table = "";
-    while (id < maxIds) {
-        var tmpHeader = "";
-        var tmpPlot = "";
-        for (var collumn = 0; collumn < 3; collumn++) {
-            while (!$("#" + id + "_show").attr('checked') && id < maxIds) {
-                id++;
-            }
-            if (id >= maxIds) {
-                tmpHeader += "<td></td>";
-                tmpPlot += "<td></td>";
-            } else {
-                tmpHeader += "<td id=\"" + id + "_plot_title\" >" + $("#" + id + "_title").val() + "</td>";
-                tmpPlot += "<td><div id=\"" + id + "_plot\" style=\"width:500px;height:300px\"></div></td>";
-            }
-            id++;
-        }
-        table += "<tr>" + tmpHeader + "</tr>";
-        table += "<tr>" + tmpPlot + "</tr>";
-
+function addPlotToTable(tableDiv, instance, category, attribute, plotTitle) {
+    var tbody = tableDiv.children(0);
+    var id = instance + "_" + category + "_" + attribute;
+    if (id in uniquePlotManager) {
+        alert("Plot with " + attribute + "(" + instance + ") already exists!");
+        return;
     }
-    tableDiv.html(table);
-    update();
+    uniquePlotManager[id] = 0;
+    if (!(instance in plotAttributesManager)) {
+        plotAttributesManager[instance] = {};
+    }
+    if (!(category in plotAttributesManager[instance])) {
+        plotAttributesManager[instance][category] = [];
+    }
+    plotAttributesManager[instance][category].push(attribute);
+
+    if (tbody.children().length == 0) {
+        createTableLine(tbody).appendChild(createPlotDiv(id, plotTitle));
+    } else {
+        var lastTr = tbody.find("tr:last");
+        if (lastTr.children().length >= 3) {
+            createTableLine(tbody).appendChild(createPlotDiv(id, plotTitle));
+        } else {
+            lastTr.append(createPlotDiv(id, plotTitle));
+        }
+    }
+}
+
+function createTableLine(tableDiv) {
+    var tr = document.createElement('tr');
+    tableDiv.append(tr);
+    return tr;
+}
+
+function createPlotDiv(id, plotTitle) {
+    var td = document.createElement('td');
+    var title = document.createElement('p');
+    title.appendChild(document.createTextNode(plotTitle));
+    var plot = document.createElement('div');
+    plot.id = id;
+    plot.style.width = "500px";
+    plot.style.height = "300px";
+    td.appendChild(title);
+    td.appendChild(plot);
+    return td;
 }
 
 function toggle(div, infoDiv, name) {
@@ -200,5 +221,12 @@ function populateOptions(select, optionArray) {
         var option = document.createElement('option');
         option.value = option.innerHTML = uniqueArray[i];
         select.append(option);
+    }
+}
+
+function populateColors(array) {
+    var colorId = 1;
+    for (var i in unique(array)) {
+        plotColorManager[i] = colorId++;
     }
 }
