@@ -84,18 +84,18 @@
                 var instance = $("#instanceComboBox").find(":selected").text();
                 var category = $("#categoryComboBox").find(":selected").text();
                 var attribute = $("#attributeComboBox").find(":selected").text();
-                var req = [instance, category, attribute, 0];
-                var url = "get-data-v2.php?folder=" + rootFolder + "&parameters=" + JSON.stringify(req);
+                var req = [[instance, category, attribute, 0]];
+                var url = "get-data-v2.php?folder=" + rootFolder + "&instances=" + JSON.stringify(req);
                 alert(rootFolder + "/" + instance + "/" + instance + "_" + category + "_numeric.csv\nAttribute:" + attribute + "\nurl:" + url);
 
-                /*$.ajax({
+                $.ajax({
                     url:url,
                     method:'GET',
                     dataType:'json',
                     success:function (text) {
                         alert(text);
                     }
-                });*/
+                });
             }
         </script>
         <table summary="">
@@ -139,7 +139,7 @@
 </div>
 <script type="text/javascript">
     <?php
-    echo 'var maxIds = ' . $ids . ';';
+    //echo 'var maxIds = ' . $ids . ';';
     ?>
 </script>
 <p/>

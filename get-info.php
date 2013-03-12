@@ -75,6 +75,6 @@ function getClusterInfo() {
         }
         closedir($fdDir);
     }
-    closedir($rootFolder);
+    closedir($fdRootFolder);
     return $resultsArray;
 }
