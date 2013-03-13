@@ -3,6 +3,7 @@
 <html>
 <head>
     <script src="js/plot.display.js" type="text/javascript"></script>
+    <script src="js/redips-drag-min.js" type="text/javascript"></script>
     <script src="js/excanvas.js" type="text/javascript"></script>
     <script src="js/excanvas.min.js" type="text/javascript"></script>
     <script src="js/jquery.js" type="text/javascript"></script>
@@ -24,10 +25,23 @@
     <script type="text/javascript">
         var rootFolder = <?php echo json_encode(getRootFolder()); ?>;
         var clusterInfo = <?php echo json_encode(getClusterInfo()); ?>;
+
+        // switching content continuously
+        REDIPS.drag.dropMode = 'switch';
+        //animation
+        REDIPS.animation = 20;
     </script>
+    <style type="text/css">
+        #drag{
+            border-style: none;
+        }
+        .drag {
+            border-style: none;
+        }
+    </style>
     <title>Workload Monitor [Real Time plots]</title>
 </head>
-<body>
+<body onload="REDIPS.drag.init()">
 
 <div id="configHeaderDiv">
     <h1>Workload Monitor - Real Time plots</h1>
@@ -106,6 +120,7 @@
                     }
                 });*/
                 addPlotToTable($("#plot_table"), instance, category, attribute, title);
+                REDIPS.drag.init();
             }
         </script>
         <table summary="">
@@ -152,9 +167,11 @@
 </div>
 <br/>
 
-<table style="border:1px solid black;" id="plot_table">
-    <tbody></tbody>
-</table>
+<div id="drag">
+    <table style="border:1px solid black;" id="plot_table">
+        <tbody></tbody>
+    </table>
+</div>
 
 </body>
 </html>

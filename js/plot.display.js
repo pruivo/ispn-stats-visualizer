@@ -178,14 +178,21 @@ function createTableLine(tableDiv) {
 
 function createPlotDiv(id, plotTitle) {
     var td = document.createElement('td');
+    var tdDiv = document.createElement('div');
+    tdDiv.className = "drag";
+    tdDiv.style.cursor = "move";
     var title = document.createElement('p');
-    title.appendChild(document.createTextNode(plotTitle));
+    var center = document.createElement('center');
+    center.appendChild(document.createTextNode(plotTitle));
+    title.appendChild(center);
     var plot = document.createElement('div');
     plot.id = id;
     plot.style.width = "500px";
     plot.style.height = "300px";
-    td.appendChild(title);
-    td.appendChild(plot);
+
+    tdDiv.appendChild(title);
+    tdDiv.appendChild(plot);
+    td.appendChild(tdDiv);
     return td;
 }
 
