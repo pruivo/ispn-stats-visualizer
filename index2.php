@@ -60,7 +60,9 @@
                 var instanceSelect = $("#instanceComboBox");
                 var instanceArray = [];
                 for (var i in clusterInfo) {
-                    instanceArray.push(clusterInfo[i][0]);
+                    if (clusterInfo[i][0] != "") {
+                        instanceArray.push(clusterInfo[i][0]);
+                    }
                 }
                 populateColors(instanceArray);
                 populateOptions(instanceSelect, instanceArray);
@@ -72,8 +74,9 @@
                 var categorySelect = $("#categoryComboBox");
                 var categoryArray = [];
                 for (var i in clusterInfo) {
-                    if (clusterInfo[i][0] == instance)
+                    if (clusterInfo[i][0] == instance && clusterInfo[i][1] != "") {
                         categoryArray.push(clusterInfo[i][1]);
+                    }
                 }
                 populateOptions(categorySelect, categoryArray);
                 populateAttributes();
@@ -88,7 +91,9 @@
                     if (clusterInfo[i][0] == instance && clusterInfo[i][1] == category) {
                         var instanceInfoArray = clusterInfo[i];
                         for (var index = 2; index < instanceInfoArray.length; ++index) {
-                            attributeArray.push(instanceInfoArray[index]);
+                            if (instanceInfoArray[index] != "") {
+                                attributeArray.push(instanceInfoArray[index]);
+                            }
                         }
                         break;
                     }
