@@ -2,11 +2,18 @@ var updateInterval = 10000;
 var uniquePlotManager = {};
 var plotColorManager = {};
 var plotAttributesManager = {};
+var updating = false;
+var previousPoint = null;
 
 var default_options = {
-    series:{ shadowSize:0 }, // drawing is faster without shadows
-    yaxis:{ min:0 },
-    xaxis:{ min:0 }
+    series:{ shadowSize:0 },
+    xaxis:{
+        mode:"time",
+        timeformat:"%H:%M.%S"
+    },
+    grid:{
+        hoverable:true
+    }
 };
 
 var log_options = {
@@ -51,8 +58,41 @@ function setUpdateInterval(input) {
     }
 }
 
+function a1Sort(a, b){
+    var cnt= 0, tem;
+    a= String(a).toLowerCase();
+    b= String(b).toLowerCase();
+    if(a== b) return 0;
+    if(/\d/.test(a) ||  /\d/.test(b)){
+        var Rx=  /^\d+(\.\d+)?/;
+        while(a.charAt(cnt)=== b.charAt(cnt) &&
+            !Rx.test(a.substring(cnt))){
+            cnt++;
+        }
+        a= a.substring(cnt);
+        b= b.substring(cnt);
+        if(Rx.test(a) || Rx.test(b)){
+            if(!Rx.test(a)) return a? 1: -1;
+            if(!Rx.test(b)) return b? -1: 1;
+            tem= parseFloat(a)-parseFloat(b);
+            if(tem!= 0) return tem;
+            a= a.replace(Rx,'');
+            b= b.replace(Rx,'');
+            if(/\d/.test(a) ||  /\d/.test(b)){
+                return a1Sort(a, b);
+            }
+        }
+    }
+    if(a== b) return 0;
+    return a> b? 1: -1;
+}
 
-function updatePlot(div, param, options, smoothValue) {
+function generateId(instance, category, attribute) {
+    var id = instance + category + attribute;
+    return id.replace(/\./g, '').replace(/_/g, '');
+}
+
+/*function updatePlot(div, param, options, smoothValue) {
     $.ajax({
         url:"get-data.php?param=" + param + "&folder=" + folder,
         method:'GET',
@@ -79,9 +119,9 @@ function updatePlot(div, param, options, smoothValue) {
             $.plot($("#" + div), allData, options);
         }
     });
-}
+}*/
 
-function updateProtocol() {
+/*function updateProtocol() {
     $.ajax({
         url:"get-data.php?param=protocol&folder=" + folder,
         method:'GET',
@@ -102,17 +142,68 @@ function updateProtocol() {
             }
         }
     });
-}
+}*/
 
 function update() {
-    for (var id = 1; id < maxIds; ++id) {
-        updatePlotForId(id, $("#" + id + "_name").html(), $("#" + id + "_log_scale").attr('checked'),
-            $("#" + id + "_smooth").attr('checked'), $("#" + id + "_smooth_value").val());
+    if (updating) {
+        return;
     }
+    updating = true;
+    var request = [];
+    for (var instance in plotAttributesManager) {
+        for (var category in plotAttributesManager[instance]) {
+            var temp = [instance, category];
+            for (var index = 0; index < plotAttributesManager[instance][category].length; ++index) {
+                var attribute = plotAttributesManager[instance][category][index];
+                temp.push(attribute);
+                temp.push(uniquePlotManager[generateId(instance, category, attribute)][0]);
+            }
+            request.push(temp);
+        }
+    }
+
+    var url = "get-data-v2.php?folder=" + rootFolder + "&instances=" + JSON.stringify(request);
+    $.ajax({
+        url:url,
+        method:'GET',
+        dataType:'json',
+        success:function (text) {
+            for (var index = 0; index < text.length; ++index) {
+                var instance = text[index][0];
+                var category = text[index][1];
+                for (var attributeIndex = 2; attributeIndex < text[index].length; ++attributeIndex) {
+                    var attribute = text[index][attributeIndex][0];
+                    var id = generateId(instance, category, attribute);
+                    var plotObject = uniquePlotManager[id][1];
+                    var minTimeStamp = uniquePlotManager[id][0];
+                    var maxTimeStamp = minTimeStamp;
+                    var needRePlot = false;
+                    for (var dataIndex = 3; dataIndex < text[index][attributeIndex].length; ++dataIndex) {
+                        var pair = text[index][attributeIndex][dataIndex];
+                        if (minTimeStamp >= pair[0]) {
+                            continue;
+                        }
+                        plotObject["data"].push(pair);
+                        if (maxTimeStamp < pair[0]) {
+                            maxTimeStamp = pair[0];
+                        }
+                        needRePlot = true;
+                    }
+                    uniquePlotManager[id][0] = maxTimeStamp;
+                    if (needRePlot) {
+                        $.plot($("#" + id), [plotObject], default_options);
+                    }
+                }
+            }
+            updating = false;
+        }
+    })
+    ;
+
     setTimeout(update, updateInterval);
 }
 
-function updatePlotForId(id, parameter, log_scale, smooth, smooth_value) {
+/*function updatePlotForId(id, parameter, log_scale, smooth, smooth_value) {
     var options;
     if (log_scale) {
         options = log_options;
@@ -129,27 +220,23 @@ function updatePlotForId(id, parameter, log_scale, smooth, smooth_value) {
     }
 
     updatePlot(id + "_plot", parameter, options, smooth_value);
-}
+}*/
 
-function updatePlotTitleFor(div, value) {
-    div.html(value.val());
-}
-
-function smooth(oldValue, newValue, alpha) {
+/*function smooth(oldValue, newValue, alpha) {
     if (oldValue == -1) {
         return newValue;
     }
     return alpha * newValue + (1 - alpha) * oldValue;
-}
+}*/
 
 function addPlotToTable(tableDiv, instance, category, attribute, plotTitle) {
     var tbody = tableDiv.children(0);
-    var id = instance + "_" + category + "_" + attribute;
+    var id = generateId(instance, category, attribute);
     if (id in uniquePlotManager) {
         alert("Plot with " + attribute + "(" + instance + ") already exists!");
         return;
     }
-    uniquePlotManager[id] = 0;
+    uniquePlotManager[id] = [0, {data:[], color:plotColorManager[instance] }];
     if (!(instance in plotAttributesManager)) {
         plotAttributesManager[instance] = {};
     }
@@ -157,6 +244,7 @@ function addPlotToTable(tableDiv, instance, category, attribute, plotTitle) {
         plotAttributesManager[instance][category] = [];
     }
     plotAttributesManager[instance][category].push(attribute);
+
 
     if (tbody.children().length == 0) {
         createTableLine(tbody).appendChild(createPlotDiv(id, plotTitle));
@@ -168,6 +256,7 @@ function addPlotToTable(tableDiv, instance, category, attribute, plotTitle) {
             lastTr.append(createPlotDiv(id, plotTitle));
         }
     }
+    update();
 }
 
 function createTableLine(tableDiv) {
@@ -193,6 +282,8 @@ function createPlotDiv(id, plotTitle) {
     tdDiv.appendChild(title);
     tdDiv.appendChild(plot);
     td.appendChild(tdDiv);
+    //td.appendChild(title);
+    //td.appendChild(plot);
     return td;
 }
 
@@ -210,12 +301,12 @@ function unique(array) {
     if (!(array instanceof Array)) {
         return [];
     }
-    var tmp = [];
-    for (var p in array) {
-        tmp[array[p]] = true;
+    var tmp = {};
+    for (var i = 0; i < array.length; ++i) {
+        tmp[array[i]] = true;
     }
     var result = [];
-    for (p in tmp) {
+    for (var p in tmp) {
         result.push(p);
     }
     return result;
@@ -223,8 +314,8 @@ function unique(array) {
 
 function populateOptions(select, optionArray) {
     select.empty();
-    var uniqueArray = unique(optionArray);
-    for (i in uniqueArray) {
+    var uniqueArray = unique(optionArray).sort(a1Sort);
+    for (var i = 0; i < uniqueArray.length; ++i) {
         var option = document.createElement('option');
         option.value = option.innerHTML = uniqueArray[i];
         select.append(option);
@@ -233,7 +324,40 @@ function populateOptions(select, optionArray) {
 
 function populateColors(array) {
     var colorId = 1;
-    for (var i in unique(array)) {
-        plotColorManager[i] = colorId++;
+    var uniqueArray = unique(array);
+    for (var i = 0; i < uniqueArray.length; ++i) {
+        plotColorManager[uniqueArray[i]] = colorId++;
+    }
+}
+
+function showTooltip(x, y, contents) {
+    $("<div id='tooltip'>" + contents + "</div>").css({
+        position:"absolute",
+        display:"none",
+        top:y + 5,
+        left:x + 5,
+        border:"1px solid #fdd",
+        padding:"2px",
+        "background-color":"#fee",
+        opacity:0.80
+    }).appendTo("body").fadeIn(200);
+}
+
+function onMouseOver(event, pos, item) {
+    var toolTip = $("#tooltip");
+    if (item) {
+        if (previousPoint != item.dataIndex) {
+
+            previousPoint = item.dataIndex;
+
+            toolTip.remove();
+            var x = item.datapoint[0],
+                y = item.datapoint[1];
+
+            showTooltip(item.pageX, item.pageY, item.series.xaxis.tickFormatter(x, item.series.xaxis) + " = " + y);
+        }
+    } else {
+        toolTip.remove();
+        previousPoint = null;
     }
 }

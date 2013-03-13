@@ -59,7 +59,7 @@ function parseFile($rootFolder, $instance, $category, $attributes, $initialValue
             if ($initialValues[$i] >= $timestamp || !array_key_exists($i, $attributesIndexes)) {
                 continue;
             }
-            array_push($result[$i], array($timestamp, $csvLine[$attributesIndexes[$i]]));
+            array_push($result[$i], array(intval($timestamp), intval($csvLine[$attributesIndexes[$i]])));
         }
     }
 
@@ -101,9 +101,9 @@ foreach ($instances as $instanceAndCategoryRequest) {
         array_push($attributesOnly, $instanceAndCategoryRequest[$i++]);
         array_push($initValuesOnly, $instanceAndCategoryRequest[$i]);
     }
-    array_push($instanceResult, parseFile($folder, $instanceAndCategoryRequest[0], $instanceAndCategoryRequest[1],
-    $attributesOnly, $initValuesOnly));
-    array_push($result, $instanceResult);
+    $parsedFile = parseFile($folder, $instanceAndCategoryRequest[0], $instanceAndCategoryRequest[1],
+    $attributesOnly, $initValuesOnly);
+    array_push($result, array_merge($instanceResult, $parsedFile));
 }
 
 echo json_encode($result);

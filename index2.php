@@ -8,7 +8,7 @@
     <script src="js/excanvas.min.js" type="text/javascript"></script>
     <script src="js/jquery.js" type="text/javascript"></script>
     <script src="js/jquery.flot.js" type="text/javascript"></script>
-    <!--script src="js/jquery.colorhelpers.js" type="text/javascript"></script>
+    <script src="js/jquery.colorhelpers.js" type="text/javascript"></script>
     <script src="js/jquery.flot.categories.js" type="text/javascript"></script>
     <script src="js/jquery.flot.crosshair.js" type="text/javascript"></script>
     <script src="js/jquery.flot.fillbetween.js" type="text/javascript"></script>
@@ -20,7 +20,7 @@
     <script src="js/jquery.flot.stack.js" type="text/javascript"></script>
     <script src="js/jquery.flot.symbol.js" type="text/javascript"></script>
     <script src="js/jquery.flot.threshold.js" type="text/javascript"></script>
-    <script src="js/jquery.flot.time.js" type="text/javascript"></script-->
+    <script src="js/jquery.flot.time.js" type="text/javascript"></script>
 
     <script type="text/javascript">
         var rootFolder = <?php echo json_encode(getRootFolder()); ?>;
@@ -32,9 +32,10 @@
         REDIPS.animation = 20;
     </script>
     <style type="text/css">
-        #drag{
+        #drag {
             border-style: none;
         }
+
         .drag {
             border-style: none;
         }
@@ -172,6 +173,10 @@
         <tbody></tbody>
     </table>
 </div>
+
+<script type="text/javascript">
+    $("#plot_table").bind("plothover", onMouseOver);
+</script>
 
 </body>
 </html>
