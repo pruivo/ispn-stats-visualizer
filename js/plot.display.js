@@ -162,7 +162,7 @@ function update() {
         }
     }
 
-    var url = "get-data-v2.php?folder=" + rootFolder + "&instances=" + JSON.stringify(request);
+    var url = "get-data.php?folder=" + rootFolder + "&instances=" + JSON.stringify(request);
     $.ajax({
         url:url,
         method:'GET',
@@ -229,11 +229,13 @@ function update() {
     return alpha * newValue + (1 - alpha) * oldValue;
 }*/
 
-function addPlotToTable(tableDiv, instance, category, attribute, plotTitle) {
+function addPlotToTable(tableDiv, instance, category, attribute, plotTitle, failIfDuplicated, forceUpdate) {
     var tbody = tableDiv.children(0);
     var id = generateId(instance, category, attribute);
     if (id in uniquePlotManager) {
-        alert("Plot with " + attribute + "(" + instance + ") already exists!");
+        if (failIfDuplicated) {
+            alert("Plot with " + attribute + "(" + instance + ") already exists!");
+        }
         return;
     }
     uniquePlotManager[id] = [0, {data:[], color:plotColorManager[instance] }];
@@ -256,7 +258,9 @@ function addPlotToTable(tableDiv, instance, category, attribute, plotTitle) {
             lastTr.append(createPlotDiv(id, plotTitle));
         }
     }
-    update();
+    if (forceUpdate) {
+        update();
+    }
 }
 
 function createTableLine(tableDiv) {
