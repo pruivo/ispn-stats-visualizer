@@ -21,6 +21,7 @@
     <script src="js/jquery.flot.symbol.js" type="text/javascript"></script>
     <script src="js/jquery.flot.threshold.js" type="text/javascript"></script>
     <script src="js/jquery.flot.time.js" type="text/javascript"></script>
+    <script src="js/cloudtm-script.js" type="text/javascript"></script>
 
     <script type="text/javascript">
         var rootFolder = <?php echo json_encode(getRootFolder()); ?>;
@@ -106,7 +107,7 @@
             function suggestTitle() {
                 var instance = $("#instanceComboBox").find(":selected").text();
                 var attribute = $("#attributeComboBox").find(":selected").text();
-                $("#title").val(instance + ": " + attribute);
+                $("#title").val(instance + ":" + attribute);
             }
 
             function addPlot(failIdDuplicated, forceUpdate) {
@@ -130,22 +131,28 @@
                 REDIPS.drag.init();
             }
 
-            function addForAllPlots() {
-                var category = $("#categoryComboBox").find(":selected").text();
-                var attribute = $("#attributeComboBox").find(":selected").text();
+            function addForAllPlotsToTable(category, attribute) {
                 for (var i in clusterInfo) {
                     if (clusterInfo[i][1] == category) {
                         var instanceInfoArray = clusterInfo[i];
                         for (var index = 2; index < instanceInfoArray.length; ++index) {
                             if (instanceInfoArray[index] != "" && instanceInfoArray[index] == attribute) {
                                 var instance = clusterInfo[i][0];
-                                addPlotToTable($("#plot_table"), instance, category, attribute, instance + ":" + attribute ,false, false);
+                                addPlotToTable($("#plot_table"), instance, category, attribute, instance + ":" + attribute, false, false);
                                 break;
                             }
                         }
                     }
                 }
-                update();
+            }
+
+            function addForAllPlots(forceUpdate) {
+                var category = $("#categoryComboBox").find(":selected").text();
+                var attribute = $("#attributeComboBox").find(":selected").text();
+                addForAllPlotsToTable(category, attribute);
+                if (forceUpdate) {
+                    update();
+                }
                 REDIPS.drag.init();
             }
         </script>
@@ -179,7 +186,7 @@
                     <button onclick="addPlot(true, true)">Add</button>
                 </td>
                 <td>
-                    <button onclick="addForAllPlots()">Add for all instances</button>
+                    <button onclick="addForAllPlots(false)">Add for all instances</button>
                 </td>
                 <!--
                 echo '<input type="checkbox" id="' . $ids . '_smooth" onchange="update();"/>';
@@ -187,7 +194,64 @@
                 -->
             </tr>
         </table>
-        <p>Time between updates: <input id="updateInterval" type="text" value="1000"
+        <br/>
+        <table border="1" style="border-style: solid; border-collapse: collapse">
+            <tr>
+                <th></th>
+                <th>Transaction</th>
+                <th>Network</th>
+                <th>LARD</th>
+                <th>Resources</th>
+            </tr>
+            <tr>
+                <td>Cluster</td>
+                <td>
+                    <div style="text-align: center;">
+                        <button onclick="transactionStats(true)">Add</button>
+                    </div>
+                </td>
+                <td>
+                    <div style="text-align: center;">
+                        <button onclick="networkStats(true)">Add</button>
+                    </div>
+                </td>
+                <td>
+                    <div style="text-align: center;">
+                        <button onclick="lardStats(true)">Add</button>
+                    </div>
+                </td>
+                <td>
+                    <div style="text-align: center;">
+                        <button onclick="resourcesStats(true)">Add</button>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Per Instance</td>
+                <td>
+                    <div style="text-align: center;">
+                        <button onclick="transactionStats(false)">Add</button>
+                    </div>
+                </td>
+                <td>
+                    <div style="text-align: center;">
+                        <button onclick="networkStats(false)">Add</button>
+                    </div>
+                </td>
+                <td>
+                    <div style="text-align: center;">
+                        <button onclick="lardStats(false)">Add</button>
+                    </div>
+                </td>
+                <td>
+                    <div style="text-align: center;">
+                        <button onclick="resourcesStats(false)">Add</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <p>Time between updates: <input id="updateInterval" type="text" value="10000"
                                         style="text-align: right; width:5em" onchange="setUpdateInterval($(this))">
             milliseconds</p>
         <script type="text/javascript">

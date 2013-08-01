@@ -50,10 +50,10 @@ function setUpdateInterval(input) {
     var v = input.val();
     if (v && !isNaN(+v)) {
         updateInterval = +v;
-        if (updateInterval < 1000)
-            updateInterval = 1000;
-        if (updateInterval > 20000)
-            updateInterval = 20000;
+        if (updateInterval < 5000)
+            updateInterval = 5000;
+        if (updateInterval > 60000)
+            updateInterval = 60000;
         input.val(updateInterval);
     }
 }

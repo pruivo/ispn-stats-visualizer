@@ -59,7 +59,7 @@ function parseFile($rootFolder, $instance, $category, $attributes, $initialValue
             if ($initialValues[$i] >= $timestamp || !array_key_exists($i, $attributesIndexes)) {
                 continue;
             }
-            array_push($result[$i], array(intval($timestamp), intval($csvLine[$attributesIndexes[$i]])));
+            array_push($result[$i], array(intval($timestamp), floatval($csvLine[$attributesIndexes[$i]])));
         }
     }
 
