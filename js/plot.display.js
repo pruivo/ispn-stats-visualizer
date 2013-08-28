@@ -162,10 +162,10 @@ function update() {
         }
     }
 
-    var url = "get-data.php?folder=" + rootFolder + "&instances=" + JSON.stringify(request);
     $.ajax({
-        url:url,
-        method:'GET',
+        url:"get-data.php?folder=" + rootFolder,
+        type:'POST',
+        data: { instances: JSON.stringify(request) },
         dataType:'json',
         success:function (text) {
             for (var index = 0; index < text.length; ++index) {
