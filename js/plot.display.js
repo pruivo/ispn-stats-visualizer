@@ -11,6 +11,20 @@ var default_options = {
         mode:"time",
         timeformat:"%H:%M.%S"
     },
+    yaxis:{
+        tickFormatter: function suffixFormatter(val, axis) {
+           var exp = 0;
+           while (val >= 1000) {
+              val /= 1000;
+              exp += 3;
+           }
+           if (exp > 0) {
+              return val.toFixed(axis.tickDecimals) + " E" + exp;
+           } else {
+              return val.toFixed(axis.tickDecimals);
+           }
+        }
+    },
     grid:{
         hoverable:true
     }
@@ -178,7 +192,7 @@ function update() {
                     var minTimeStamp = uniquePlotManager[id][0];
                     var maxTimeStamp = minTimeStamp;
                     var needRePlot = false;
-                    for (var dataIndex = 3; dataIndex < text[index][attributeIndex].length; ++dataIndex) {
+                    for (var dataIndex = 1; dataIndex < text[index][attributeIndex].length; ++dataIndex) {
                         var pair = text[index][attributeIndex][dataIndex];
                         if (minTimeStamp >= pair[0]) {
                             continue;
@@ -195,12 +209,11 @@ function update() {
                     }
                 }
             }
+            setTimeout(update, updateInterval);
             updating = false;
         }
     })
     ;
-
-    setTimeout(update, updateInterval);
 }
 
 /*function updatePlotForId(id, parameter, log_scale, smooth, smooth_value) {
@@ -330,7 +343,7 @@ function populateColors(array) {
     var colorId = 1;
     var uniqueArray = unique(array);
     for (var i = 0; i < uniqueArray.length; ++i) {
-        plotColorManager[uniqueArray[i]] = colorId++;
+        plotColorManager[uniqueArray[i]] = "rgb(0, 0, 0)";
     }
 }
 
